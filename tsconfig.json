@@ -5,5 +5,17 @@
     "paths": {
       "@src/*": ["src/*"]
     }
-  }
+  },
+  "moduleResolution": "node",
+  "include": [
+    "__tests__",
+    "src",
+    "@types",
+    ".eslintrc.js",
+    "babel.config.js",
+    "index.js",
+    "metro.config.js",
+    "react-native.config.js"
+  ],
+  "exclude": ["node_modules", "jest.config.js", "App-test.test"]
 }

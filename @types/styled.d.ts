@@ -1,4 +1,4 @@
-import { colors, typos } from '@src/constants';
+import {colors, typos} from '@src/constants';
 import {} from 'styled-components/native';
 
 declare module 'styled-components' {

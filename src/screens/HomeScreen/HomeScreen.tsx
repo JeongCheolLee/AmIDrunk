@@ -1,23 +1,32 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import {images} from '../../assets/index';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   return (
     <View style={styles.container}>
       <Image source={images.HOME_BEER_IMAGE} style={styles.image} />
+      <Text style={styles.text}>지금 술을 마시고 계신가요?</Text>
       <Text style={styles.text}>
-        지금 술을 마시고 계신가요? 아래 테스트를 통해 취하셨는지 확인해보세요.
+        아래 테스트를 통해 취하셨는지 확인해보세요!
       </Text>
+
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Game1')}>
-        <Text style={styles.buttonText}>게임 1</Text>
+        onPress={() => navigation.navigate('TextingGame')}>
+        <Text style={styles.buttonText}>받아쓰기</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Game2')}>
-        <Text style={styles.buttonText}>게임 2</Text>
+        onPress={() => Alert.alert('준비중입니다!')}>
+        <Text style={styles.buttonText}>coming soon!</Text>
       </TouchableOpacity>
     </View>
   );
@@ -28,11 +37,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#f0e6d6',
   },
   image: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
+    resizeMode: 'repeat',
+    height: 400,
   },
   text: {
     fontSize: 18,
@@ -40,15 +49,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    backgroundColor: 'blue', // 버튼 배경색
+    backgroundColor: '#e4aa43',
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
+    height: 40,
   },
   buttonText: {
-    color: 'white',
+    color: '#f0e6d6',
     fontSize: 16,
     fontWeight: 'bold',
+    width: 100,
+    textAlign: 'center',
   },
 });
 
