@@ -1,21 +1,22 @@
 // @ts-expect-error
 import {Stopwatch} from 'react-native-stopwatch-timer';
-import React, {useState} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TextInput, Button, StyleSheet} from 'react-native';
 import {
   ALERT_TYPE,
   AlertNotificationRoot,
   Dialog,
 } from 'react-native-alert-notification';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const GameScreen: React.FC = () => {
-  const [elapsedTimeInSec, setElapsedTimeInSec] = useState<number>(0);
+  const [elapsedTimeInSec, setElapsedTimeInSec] = useState<string>('');
   const [inputText, setInputText] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
 
-  const [firstTrial, setFirstTrial] = useState<number>(0);
-  const [secondTrial, setSecondTrial] = useState<number>(0);
-  const [thirdTrial, setThirdTrial] = useState<number>(0);
+  const [firstTrial, setFirstTrial] = useState<string>('');
+  const [secondTrial, setSecondTrial] = useState<string>('');
+  const [thirdTrial, setThirdTrial] = useState<string>('');
 
   const [firstTrialTime, setFirstTrialTime] = useState<string>('');
   const [secondTrialTime, setSecondTrialTime] = useState<string>('');
@@ -23,63 +24,59 @@ const GameScreen: React.FC = () => {
 
   const [stopwatchReset, setStopwatchReset] = useState<boolean>(false);
 
-  const currentRandomString =
-    '간장 공장 공장장은 강 공장장이고 된장 공장 공장장은 공 공장장이다.';
+  useEffect(() => {
+    async function getFirstTrial() {
+      const trial = await AsyncStorage.getItem('firstTrial');
+      if (trial) {
+        setFirstTrial(trial);
+      }
 
-  // const currentRandomString = '테스트 랜덤 스트리잉';
-
-  const startGame = () => {
-    if (thirdTrialTime !== '') {
-      Dialog.show({
-        type: ALERT_TYPE.WARNING,
-        title: '모든 회치에 기록이 끝났습니다!',
-        textBody: '아래 버튼을 누르면 초기화됩니다.',
-        button: '닫기',
-        onPressButton: () => {
-          setFirstTrial(0);
-          setSecondTrial(0);
-          setThirdTrial(0);
-          setFirstTrialTime('');
-          setSecondTrialTime('');
-          setThirdTrialTime('');
-        },
-        autoClose: 500,
-      });
-
-      return;
-    }
-    setGameStarted(true);
-    setStopwatchReset(false);
-    setElapsedTimeInSec(0);
-    setInputText('');
-  };
-
-  const stopGame = () => {
-    let drunk = false;
-
-    if (gameStarted) {
-      setGameStarted(false);
-      setStopwatchReset(true);
-
-      if (firstTrial === 0) {
-        setFirstTrial(elapsedTimeInSec);
-        setFirstTrialTime(new Date().toLocaleString());
-        drunk = false;
-      } else if (secondTrial === 0) {
-        setSecondTrial(elapsedTimeInSec);
-        setSecondTrialTime(new Date().toLocaleString());
-        if (elapsedTimeInSec >= firstTrial) {
-          drunk = true;
-        }
-      } else if (thirdTrial === 0) {
-        setThirdTrial(elapsedTimeInSec);
-        setThirdTrialTime(new Date().toLocaleString());
-        if (elapsedTimeInSec >= secondTrial) {
-          drunk = true;
-        }
+      const time = await AsyncStorage.getItem('firstTrialTime');
+      if (time) {
+        setFirstTrialTime(time);
       }
     }
 
+    async function getSecondTrial() {
+      const trial = await AsyncStorage.getItem('secondTrial');
+      if (trial) {
+        setSecondTrial(trial);
+      }
+
+      const time = await AsyncStorage.getItem('secondTrialTime');
+      if (time) {
+        setSecondTrialTime(time);
+      }
+    }
+
+    async function getThirdTrial() {
+      const trial = await AsyncStorage.getItem('thirdTrial');
+      if (trial) {
+        setThirdTrial(trial);
+      }
+
+      const time = await AsyncStorage.getItem('thirdTrialTime');
+      if (time) {
+        setThirdTrialTime(time);
+      }
+    }
+
+    if (firstTrial === '') {
+      getFirstTrial();
+    }
+    if (secondTrial === '') {
+      getSecondTrial();
+    }
+    if (thirdTrial === '') {
+      getThirdTrial();
+    }
+  }, [firstTrial, secondTrial, thirdTrial]);
+
+  //TODO 추후에 추가
+  const currentRandomString =
+    '간장 공장 공장장은 강 공장장이고 된장 공장 공장장은 공 공장장이다';
+
+  const validateInputString = (drunk: boolean) => {
     if (inputText !== currentRandomString.trim()) {
       Dialog.show({
         type: ALERT_TYPE.DANGER,
@@ -87,6 +84,8 @@ const GameScreen: React.FC = () => {
         textBody: '혹시 취하신 건 아니죠?!',
         button: '닫기',
       });
+
+      return false;
     } else {
       if (drunk) {
         Dialog.show({
@@ -104,21 +103,128 @@ const GameScreen: React.FC = () => {
         });
       }
     }
+
+    return true;
   };
 
-  const getFormattedTime = (time: number) => {
-    setElapsedTimeInSec(time);
+  const startGame = () => {
+    if (thirdTrialTime !== '') {
+      Dialog.show({
+        type: ALERT_TYPE.WARNING,
+        title: '모든 회치에 기록이 끝났습니다!',
+        textBody: '아래 버튼을 누르면 초기화됩니다.',
+        button: '닫기',
+        onPressButton: resetStates,
+        autoClose: 500,
+      });
+
+      return;
+    }
+    setGameStarted(true);
+    setStopwatchReset(false);
+    setElapsedTimeInSec('');
+    setInputText('');
+  };
+
+  const resetStates = () => {
+    setFirstTrial('');
+    setSecondTrial('');
+    setThirdTrial('');
+    setFirstTrialTime('');
+    setSecondTrialTime('');
+    setThirdTrialTime('');
+
+    AsyncStorage.clear();
+
+    Dialog.show({
+      type: ALERT_TYPE.SUCCESS,
+      title: '초기화 완료',
+      button: '닫기',
+    });
+
+    return;
+  };
+
+  const stopGame = () => {
+    let drunk = false;
+
+    if (gameStarted) {
+      if (firstTrial === '') {
+        drunk = false;
+        const result = validateInputString(drunk);
+
+        if (result) {
+          const now = new Date().toLocaleString();
+          setFirstTrial(elapsedTimeInSec);
+          setFirstTrialTime(now);
+
+          setGameStarted(false);
+          setStopwatchReset(true);
+
+          AsyncStorage.setItem('firstTrial', elapsedTimeInSec);
+          AsyncStorage.setItem('firstTrialTime', now);
+        } else {
+          return;
+        }
+      } else if (secondTrial === '') {
+        if (elapsedTimeInSec >= firstTrial) {
+          drunk = true;
+        }
+        const result = validateInputString(drunk);
+
+        if (result) {
+          const now = new Date().toLocaleString();
+          setSecondTrial(elapsedTimeInSec);
+          setSecondTrialTime(now);
+
+          setGameStarted(false);
+          setStopwatchReset(true);
+
+          AsyncStorage.setItem('secondTrial', elapsedTimeInSec.toString());
+          AsyncStorage.setItem('secondTrialTime', now);
+        } else {
+          return;
+        }
+      } else if (thirdTrial === '') {
+        if (elapsedTimeInSec >= secondTrial) {
+          drunk = true;
+        }
+
+        const result = validateInputString(drunk);
+
+        if (result) {
+          const now = new Date().toLocaleString();
+          setThirdTrial(elapsedTimeInSec);
+          setThirdTrialTime(now);
+
+          setGameStarted(false);
+          setStopwatchReset(true);
+
+          AsyncStorage.setItem('thirdTrial', elapsedTimeInSec.toString());
+          AsyncStorage.setItem('thirdTrialTime', now);
+        } else {
+          return;
+        }
+      }
+    }
+  };
+
+  let resetButton;
+  if (firstTrial !== '') {
+    resetButton = <Button title="초기화" onPress={resetStates} color={'red'} />;
+  }
+
+  const getFormattedTime = (time: Number) => {
+    setElapsedTimeInSec(time.toString());
   };
 
   return (
     <AlertNotificationRoot>
       <View style={{...styles.container}}>
         <Text style={styles.headerText}>받아쓰기</Text>
-      </View>
-      <View style={styles.container}>
         <Text style={styles.gameText}>{currentRandomString}</Text>
       </View>
-      <View style={styles.stopWatch}>
+      <View style={styles.container}>
         <Stopwatch
           style={styles.stopWatch}
           msecs
@@ -126,8 +232,6 @@ const GameScreen: React.FC = () => {
           reset={stopwatchReset}
           getTime={getFormattedTime}
         />
-      </View>
-      <View style={styles.container}>
         <TextInput
           style={styles.input}
           value={inputText}
@@ -140,23 +244,18 @@ const GameScreen: React.FC = () => {
           onPress={gameStarted ? stopGame : startGame}
           color={'blue'}
         />
-        {gameStarted}
       </View>
       <View style={styles.container}>
         <Text style={styles.record}>
           1차기록 :{' '}
-          {firstTrial !== 0
-            ? firstTrial.toString().slice(-6) + ' 초' + '\n'
-            : '시작전'}
+          {firstTrial !== '' ? firstTrial.slice(-6) + ' 초' + '\n' : '시작전'}
         </Text>
         <Text>
           {firstTrialTime ? '음주 측정 시간: ' + firstTrialTime.slice(11) : ''}
         </Text>
         <Text style={styles.record}>
           2차기록 :{' '}
-          {secondTrial !== 0
-            ? secondTrial.toString().slice(-6) + ' 초' + '\n'
-            : '시작전'}
+          {secondTrial !== '' ? secondTrial.slice(-6) + ' 초' + '\n' : '시작전'}
         </Text>
         <Text>
           {secondTrialTime
@@ -165,13 +264,12 @@ const GameScreen: React.FC = () => {
         </Text>
         <Text style={styles.record}>
           3차기록 :{' '}
-          {thirdTrial !== 0
-            ? thirdTrial.toString().slice(-6) + ' 초' + '\n'
-            : '시작전'}
+          {thirdTrial !== '' ? thirdTrial.slice(-6) + ' 초' + '\n' : '시작전'}
         </Text>
         <Text>
           {thirdTrialTime ? '음주 측정 시간: ' + thirdTrialTime.slice(11) : ''}
         </Text>
+        {resetButton}
       </View>
     </AlertNotificationRoot>
   );
@@ -186,11 +284,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    marginTop: 50,
-    marginBottom: 30,
+    paddingTop: 20,
     justifyContent: 'center',
     alignItems: 'center',
     fontSize: 16,
+    backgroundColor: '#f0e6d6',
+    flex: 1,
   },
   stopWatch: {
     justifyContent: 'center',
@@ -199,6 +298,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 30,
     fontWeight: 'bold',
+    paddingBottom: 30,
   },
   introductionText: {
     marginTop: 50,
@@ -214,11 +314,11 @@ const styles = StyleSheet.create({
   },
   gameText: {
     fontSize: 24,
+    marginTop: 40,
     fontWeight: 'bold',
     alignContent: 'center',
     justifyContent: 'center',
     textAlign: 'center',
-    marginBottom: 20,
     width: 300,
   },
   input: {
