@@ -3,4 +3,4 @@
 2. https://www.mem0ir.com/JeongCheolLee/52
 3. https://www.mem0ir.com/JeongCheolLee/55
 
-![Uploading gj1i0ibb4gbe.gif…]()
+![image](https://d1ccleacxg8gcm.cloudfront.net/JeongCheolLee/images/gj1i0ibb4gbe.gif)
